@@ -15,15 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 /**
  * Override WooCommerce default "is_add_payment_method_page" method so that it returns true if we're on the BuddyPress equivalent
  */
-function is_add_payment_method_page() {
-	global $wp;
-	
-	if( isset( $wp->query_vars['add-payment-method'] ) ) 
-		return true;
+if( ! function_exists('is_add_payment_method_page') ) {
+    function is_add_payment_method_page() {
+        global $wp;
+        
+        if( isset( $wp->query_vars['add-payment-method'] ) ) 
+            return true;
 
-	return ( is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['add-payment-method'] ) );
+        return ( is_page( wc_get_page_id( 'myaccount' ) ) && isset( $wp->query_vars['add-payment-method'] ) );
+    }
 }
-
 
 class BP_WooCommerce {
 
