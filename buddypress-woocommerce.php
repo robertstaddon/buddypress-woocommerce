@@ -44,7 +44,7 @@ class BP_WooCommerce {
 	 * Use the BuddyPress "Account Settings" page (/members/username/settings/) instead of the WooCommerce "Edit Account" page (/my-account/edit-account)
 	 * The WooCommerce page doesn't have "Display name publicly as..."
 	 */
-	public function customer_edit_account_url($edit_account_url) {
+	public function customer_edit_account_url( $edit_account_url = "" ) {
 		global $current_user;
 		get_currentuserinfo();
 		return '/members/' . $current_user->user_nicename . "/settings";
