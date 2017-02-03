@@ -26,6 +26,7 @@ if( ! function_exists('is_add_payment_method_page') ) {
     }
 }
 
+
 class BP_WooCommerce {
 
 	public function __construct() {		
@@ -45,8 +46,7 @@ class BP_WooCommerce {
 	 * The WooCommerce page doesn't have "Display name publicly as..."
 	 */
 	public function customer_edit_account_url( $edit_account_url = "" ) {
-		global $current_user;
-		get_currentuserinfo();
+		$current_user = wp_get_current_user();
 		return '/members/' . $current_user->user_nicename . "/settings";
 	}
 
@@ -192,8 +192,7 @@ class BP_WooCommerce {
 	 * Point WooCommerce endpoints to BuddyPress My Account pages
 	 */
 	public function get_endpoint_url( $url, $endpoint, $value, $permalink ) {
-		global $current_user;
-		get_currentuserinfo();
+		$current_user = wp_get_current_user();
 		
 		$base_path = "/members/" . $current_user->user_nicename . "/account/";
 		$endpoint_path = $base_path . $endpoint . "/";
@@ -209,7 +208,6 @@ class BP_WooCommerce {
 			case "delete-payment-method":
 			case "set-default-payment-method":
 			case "bookings":
-				error_log( "TEST:" . var_export($url, true) . "|" . var_export($endpoint, true) . "|" . var_export($value, true) . "|" . var_export($permalink, true) );
 				if($value)
 					return $endpoint_value_path;
 				else
@@ -226,10 +224,6 @@ class BP_WooCommerce {
 	//		return "/" . basename( get_permalink( get_option('woocommerce_myaccount_page_id') ) ) . $url;
 	//	}
 		return $url;
-	}
-	
-	public function fake_myaccount_page_id( $myaccount_page_id ) {
-		return true;
 	}
 }
 new BP_WooCommerce;
