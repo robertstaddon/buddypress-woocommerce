@@ -2,9 +2,9 @@
 /*
 	Plugin Name: Buddypress WooCommerce
 	Description: Add WooCommerce My Account area to BuddyPress account
-	Version: 1.0
+	Version: 1.1
 	Author: Robert Staddon
-	Author URI: http://abundantdesigns.com
+	Author URI: https://abundantdesigns.com
 	License: GPLv2 or later
 	Text Domain: buddypress-woocommerce
  */
@@ -29,16 +29,27 @@ if( ! function_exists('is_add_payment_method_page') ) {
 
 class BP_WooCommerce {
 
-	public function __construct() {		
-		// Add WooCommerce navigation and subnavigation to BuddyPress
-		add_action( 'bp_setup_nav', array( $this, 'bp_navigation') );
-
-		// Re-route WooCommerce Edit Account URL
-		add_filter( 'woocommerce_customer_edit_account_url', array( $this, 'customer_edit_account_url' ) );
-
-		// Re-route all WooCommerce URL endpoints to appropriate BuddyPress pages
-		add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );
+	public function __construct() {
+          // Require WooCommerce to be active
+          if ( in_array( 'woocommerce/woocommerce.php', apply_filters( 'active_plugins', get_option( 'active_plugins' ) ) ) ) {
+               // Check for BuddyPress and initialize if it is active
+               add_action( 'bp_include', array( $this, 'init' ) );
+          }
 	}
+     
+     /*
+      * Initialize the plugin hooks if WooCommerce and BuddyPress are active
+      */
+     public function init() {
+           // Add WooCommerce navigation and subnavigation to BuddyPress
+          add_action( 'bp_setup_nav', array( $this, 'bp_navigation') );
+
+          // Re-route WooCommerce Edit Account URL
+          add_filter( 'woocommerce_customer_edit_account_url', array( $this, 'customer_edit_account_url' ) );
+
+          // Re-route all WooCommerce URL endpoints to appropriate BuddyPress pages
+          add_filter( 'woocommerce_get_endpoint_url', array( $this, 'get_endpoint_url' ), 10, 4 );         
+     }
 		
 
 	/*
@@ -61,6 +72,9 @@ class BP_WooCommerce {
 		$account_url = trailingslashit( $bp->loggedin_user->domain . 'account' );
 		$secure_account_url = str_replace( 'http:', 'https:', $account_url );
 		
+          $wc_account_menu_items = $this->get_wc_account_menu_items();
+
+          // Add top-level Account menu item
 		bp_core_new_nav_item(
 			array(
 				'name' => __( 'Account', 'buddypress' ), 
@@ -71,106 +85,48 @@ class BP_WooCommerce {
 				'item_css_id' => 'account',
 			)
 		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Dashboard', 'buddypress' ),
-				'slug' => 'view',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 10,
-				'item_css_id' => 'account-view',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Orders', 'buddypress' ),
-				'slug' => 'orders',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 20,
-				'item_css_id' => 'account-orders',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Subscriptions', 'buddypress' ),
-				'slug' => 'subscriptions',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 30,
-				'item_css_id' => 'account-subscriptions',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Downloads', 'buddypress' ),
-				'slug' => 'downloads',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 40,
-				'item_css_id' => 'account-downloads',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Addresses', 'buddypress' ),
-				'slug' => 'edit-address',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 50,
-				'item_css_id' => 'account-edit-address',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Payment Methods', 'buddypress' ),
-				'slug' => 'payment-methods',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 60,
-				'item_css_id' => 'account-payment-methods',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Add Payment Method', 'buddypress' ),
-				'slug' => 'add-payment-method',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 60,
-				'item_css_id' => 'account-add-payment-method',
-			)
-		);
-		bp_core_new_subnav_item(
-			array(
-				'name' => __( 'Bookings', 'buddypress' ),
-				'slug' => 'bookings',
-				'parent_url' => $secure_account_url,
-				'parent_slug' => 'account',
-				'screen_function' => array( $this, 'account_screens' ),
-				'show_for_displayed_user' => false,
-				'position' => 70,
-				'item_css_id' => 'account-bookings',
-			)
-		);
+          
+          $position = 0;
+          foreach ( $wc_account_menu_items as $key => $item_title ) {
+               $position += 10;
+               if ( $key == 'dashboard') $key = 'view';
+               
+               bp_core_new_subnav_item(
+                    array(
+                         'name' => __( $item_title, 'buddypress' ),
+                         'slug' => $key,
+                         'parent_url' => $secure_account_url,
+                         'parent_slug' => 'account',
+                         'screen_function' => array( $this, 'account_screens' ),
+                         'show_for_displayed_user' => false,
+                         'position' => $position,
+                         'item_css_id' => 'account-' . $key,
+                    )
+               );              
+          }
+
 		// Remove "Settings > Delete Account" 
 		bp_core_remove_subnav_item( 'settings', 'delete-account' );
 	}
 
+     /**
+      * Get $key => $value array of WooCommerce Account menu items for BuddyPress Account menu
+      */
+     public function get_wc_account_menu_items() {
+          // Start with the WooCommerce Account menu items
+          $wc_account_menu_items = wc_get_account_menu_items();         
+
+          // Add new items
+          $wc_account_menu_items['add-payment-method'] = "Add Payment Method";
+
+          // Remove items that are on other BuddyPress menus
+          unset( $wc_account_menu_items['customer-logout'] );
+          unset( $wc_account_menu_items['edit-account'] );
+          
+          return $wc_account_menu_items;
+     }
+     
+     
 	/**
 	 * These are the screen_functions used by our custom BuddyPress navigation items
 	 */
@@ -198,32 +154,26 @@ class BP_WooCommerce {
 		$endpoint_path = $base_path . $endpoint . "/";
 		$endpoint_value_path = $endpoint_path . $value;
 		
-		switch( $endpoint ) {
-			case "orders":
-			case "subscriptions":
-			case "downloads":
-			case "edit-address":
-			case "payment-methods":
-			case "add-payment-method":
-			case "delete-payment-method":
-			case "set-default-payment-method":
-			case "bookings":
-				if($value)
-					return $endpoint_value_path;
-				else
-					return $endpoint_path;
-				
-			case "edit-account":
-				return $this->customer_edit_account_url();
-				
-			default:
-				return $url;
-		}
+          $wc_account_menu_items = $this->get_wc_account_menu_items();
+          $wc_account_menu_items["delete-payment-method"] = "Delete Payment Method";
+          $wc_account_menu_items["set-default-payment-method"] = "Set Default Payment Method";          
+          
+          if( $endpoint == "edit-account" ) {
+               return $this->customer_edit_account_url();
+          }
+          elseif ( array_key_exists( $endpoint, $wc_account_menu_items ) )  {
+               if($value)
+                    return $endpoint_value_path;
+               else
+                    return $endpoint_path;         
+          }
+          else {
+               return $url;
+          }
 		
 	//	if("/edit-address" == substr( $url, 0, 13 )) {
 	//		return "/" . basename( get_permalink( get_option('woocommerce_myaccount_page_id') ) ) . $url;
 	//	}
-		return $url;
 	}
 }
 new BP_WooCommerce;
