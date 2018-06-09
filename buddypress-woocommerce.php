@@ -2,7 +2,7 @@
 /*
 	Plugin Name: Buddypress WooCommerce
 	Description: Add WooCommerce My Account area to BuddyPress account
-	Version: 1.1
+	Version: 1.2
 	Author: Robert Staddon
 	Author URI: https://abundantdesigns.com
 	License: GPLv2 or later
@@ -72,9 +72,9 @@ class BP_WooCommerce {
 		$account_url = trailingslashit( $bp->loggedin_user->domain . 'account' );
 		$secure_account_url = str_replace( 'http:', 'https:', $account_url );
 		
-          $wc_account_menu_items = $this->get_wc_account_menu_items();
+        $wc_account_menu_items = $this->get_wc_account_menu_items();
 
-          // Add top-level Account menu item
+        // Add top-level Account menu item
 		bp_core_new_nav_item(
 			array(
 				'name' => __( 'Account', 'buddypress' ), 
@@ -86,24 +86,25 @@ class BP_WooCommerce {
 			)
 		);
           
-          $position = 0;
-          foreach ( $wc_account_menu_items as $key => $item_title ) {
-               $position += 10;
-               if ( $key == 'dashboard') $key = 'view';
-               
-               bp_core_new_subnav_item(
-                    array(
-                         'name' => __( $item_title, 'buddypress' ),
-                         'slug' => $key,
-                         'parent_url' => $secure_account_url,
-                         'parent_slug' => 'account',
-                         'screen_function' => array( $this, 'account_screens' ),
-                         'show_for_displayed_user' => false,
-                         'position' => $position,
-                         'item_css_id' => 'account-' . $key,
-                    )
-               );              
-          }
+        $position = 0;
+        foreach ( $wc_account_menu_items as $key => $item_title ) {
+            $position += 10;
+            if ( $key == 'dashboard') $key = 'view';
+            if ( strpos( $key, 'my-membership-details') !== false ) $key = 'members-area'; // WooCommerce Memberships: Don't link directly to a "My Membership Details" area because it requires unique ID in URL
+
+            bp_core_new_subnav_item(
+                array(
+                    'name' => __( $item_title, 'buddypress' ),
+                    'slug' => $key,
+                    'parent_url' => $secure_account_url,
+                    'parent_slug' => 'account',
+                    'screen_function' => array( $this, 'account_screens' ),
+                    'show_for_displayed_user' => false,
+                    'position' => $position,
+                    'item_css_id' => 'account-' . $key,
+                )
+            );              
+        }
 
 		// Remove "Settings > Delete Account" 
 		bp_core_remove_subnav_item( 'settings', 'delete-account' );
@@ -150,26 +151,29 @@ class BP_WooCommerce {
 	public function get_endpoint_url( $url, $endpoint, $value, $permalink ) {
 		$current_user = wp_get_current_user();
 		
-		$base_path = "/members/" . $current_user->user_nicename . "/account/";
-		$endpoint_path = $base_path . $endpoint . "/";
-		$endpoint_value_path = $endpoint_path . $value;
+        $base_path = "/members/" . $current_user->user_nicename . "/account/";
+        $endpoint_path = $base_path . $endpoint . "/";
+        $endpoint_value_path = $endpoint_path . $value;
 		
-          $wc_account_menu_items = $this->get_wc_account_menu_items();
-          $wc_account_menu_items["delete-payment-method"] = "Delete Payment Method";
-          $wc_account_menu_items["set-default-payment-method"] = "Set Default Payment Method";          
-          
-          if( $endpoint == "edit-account" ) {
-               return $this->customer_edit_account_url();
-          }
-          elseif ( array_key_exists( $endpoint, $wc_account_menu_items ) )  {
-               if($value)
-                    return $endpoint_value_path;
-               else
-                    return $endpoint_path;         
-          }
-          else {
-               return $url;
-          }
+        $wc_account_menu_items = $this->get_wc_account_menu_items();
+        $wc_account_menu_items["delete-payment-method"] = "Delete Payment Method";
+        $wc_account_menu_items["set-default-payment-method"] = "Set Default Payment Method";          
+
+        if( $endpoint == "edit-account" ) {
+            return $this->customer_edit_account_url();
+        }
+        elseif ( strpos( $endpoint, 'my-membership-details') !== false ) { // WooCommerce Memberships: Can't display "My Membership Details" area because of unique ID in URL
+            return $url;
+        }
+        elseif ( array_key_exists( $endpoint, $wc_account_menu_items ) )  {
+            if( $value )
+                return $endpoint_value_path;
+            else
+                return $endpoint_path;         
+        }
+        else {
+           return $url;
+        }
 		
 	//	if("/edit-address" == substr( $url, 0, 13 )) {
 	//		return "/" . basename( get_permalink( get_option('woocommerce_myaccount_page_id') ) ) . $url;
