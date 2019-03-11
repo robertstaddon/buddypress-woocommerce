@@ -181,3 +181,4 @@ class BP_WooCommerce {
     }
 }
 new BP_WooCommerce;
+
