@@ -57,8 +57,7 @@ class BP_WooCommerce {
 	 * The WooCommerce page doesn't have "Display name publicly as..."
 	 */
 	public function customer_edit_account_url( $edit_account_url = "" ) {
-		$current_user = wp_get_current_user();
-		return '/members/' . $current_user->user_nicename . "/settings";
+		return bp_loggedin_user_domain() . "settings";
 	}
 
 
@@ -77,7 +76,7 @@ class BP_WooCommerce {
         // Add top-level Account menu item
 		bp_core_new_nav_item(
 			array(
-				'name' => __( 'Account', 'buddypress' ), 
+				'name' => __( 'Account', 'buddypress-woocommerce' ), 
 				'slug' => 'account',
 				'default_subnav_slug' => 'view',
 				'show_for_displayed_user' => false, 
@@ -94,7 +93,7 @@ class BP_WooCommerce {
 
             bp_core_new_subnav_item(
                 array(
-                    'name' => __( $item_title, 'buddypress' ),
+                    'name' => __( $item_title, 'buddypress-woocommerce' ),
                     'slug' => $key,
                     'parent_url' => $secure_account_url,
                     'parent_slug' => 'account',
@@ -151,10 +150,8 @@ class BP_WooCommerce {
 	/**
 	 * Point WooCommerce endpoints to BuddyPress My Account pages
 	 */
-	public function get_endpoint_url( $url, $endpoint, $value, $permalink ) {
-		$current_user = wp_get_current_user();
-		
-        $base_path = "/members/" . $current_user->user_nicename . "/account/";
+	public function get_endpoint_url( $url, $endpoint, $value, $permalink ) {		
+        $base_path = bp_loggedin_user_domain() . "account/";
         $endpoint_path = $base_path . $endpoint . "/";
         $endpoint_value_path = $endpoint_path . $value;
 		

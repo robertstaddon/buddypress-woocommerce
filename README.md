@@ -7,5 +7,9 @@ KNOWN ISSUES
 
 CHANGELOG
 
+1.4 - February 3, 2020
+- Use 'buddypress-woocommerce' text domain
+- Make Buddypress account URL filterable
+
 1.3 - April 18, 2019
 - Fix: WooCommerce 3.6 Compatibility - Avoid 404 errors on account pages caused by https://github.com/woocommerce/woocommerce/pull/22631
